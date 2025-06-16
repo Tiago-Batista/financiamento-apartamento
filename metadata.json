@@ -1,0 +1,6 @@
+{
+  "name": "Financiamento Apartamento",
+  "description": "Aplicativo para gerenciar o financiamento de um apartamento, incluindo entradas, evolução da obra e parcelas do financiamento.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financiamento Apartamento - Relatório</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                light: '#67e8f9', // cyan-300
+                DEFAULT: '#06b6d4', // cyan-500
+                dark: '#0e7490', // cyan-700
+              },
+              secondary: {
+                light: '#fca5a5', // red-300
+                DEFAULT: '#ef4444', // red-500
+                dark: '#b91c1c', // red-700
+              },
+              accent: {
+                light: '#86efac', // green-300
+                DEFAULT: '#22c55e', // green-500
+                dark: '#15803d', // green-700
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        overscroll-behavior-y: none; /* Previne o "puxar para atualizar" em dispositivos móveis ao rolar o corpo, útil para elementos fixos */
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          font-size: 10pt;
+          margin: 0;
+          padding: 0;
+          background-color: white !important; /* Garante que o fundo do corpo seja branco para impressão */
+        }
+        @page {
+          size: A4;
+          margin: 20mm;
+        }
+        /* Adiciona um título à página impressa */
+        body::before {
+          content: "Relatório - Financiamento de Apartamento";
+          display: block;
+          text-align: center;
+          font-size: 16pt;
+          font-weight: bold;
+          margin-bottom: 1cm;
+          color: black; /* Garante que o título seja preto para impressão */
+        }
+        /* Esconde o título padrão do head no navegador, mas mantém para metadados do PDF */
+        head > title {
+            display: none;
+        }
+        /* Garante que cards e tabelas sejam estilizados razoavelmente para impressão */
+        .card-print-styling {
+          border: 1px solid #e5e7eb !important; /* gray-200 */
+          box-shadow: none !important;
+          page-break-inside: avoid;
+          background-color: white !important; /* Garante que o fundo seja branco */
+          color: black !important; /* Garante que o texto seja preto */
+        }
+        .card-print-styling * {
+            color: black !important; /* Garante que todo texto filho seja preto */
+        }
+        table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          page-break-inside: auto;
+        }
+        th, td {
+          border: 1px solid #ccc !important; /* Cinza mais claro para bordas da tabela */
+          padding: 0.4rem !important; /* Padding ligeiramente menor para impressão */
+          text-align: left !important;
+          color: black !important; /* Garante que o texto da tabela seja preto */
+        }
+        thead {
+          display: table-header-group !important; /* Repete cabeçalhos em cada página */
+          background-color: #f3f4f6 !important; /* Cinza claro para cabeçalho da tabela */
+        }
+        tr {
+          page-break-inside: avoid !important;
+          page-break-after: auto !important;
+        }
+        /* Classe customizada para esconder elementos da impressão se necessário além do Tailwind */
+        .custom-print-hidden {
+          display: none !important;
+        }
+        /* Garante que links não sejam azuis e sublinhados por padrão na impressão, a menos que especificado */
+        a {
+          color: inherit !important;
+          text-decoration: none !important;
+        }
+        a[href^="http"]:after { /* Opcionalmente mostra URLs completas para links externos */
+          /* content: " (" attr(href) ")"; */
+        }
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgP4PWGCCwoHvaXTsCk6MyNMRkEBX+/ccDptZVQYA9w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4HCscSPV_s3KA7rqZfjFPPkaxSm6wHfcFDEfyHp5ngIF7cdIg6u01L_tOVw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Removido: <script src="https://apis.google.com/js/api.js"></script> -->
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.6.1",
+    "@google/genai": "https://esm.sh/@google/genai"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-gray-100"> {/* Removido print:bg-white aqui, pois o layout e estilos de impressão cuidam disso */}
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
