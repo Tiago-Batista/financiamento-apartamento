@@ -10,15 +10,15 @@ export interface DownPaymentEntry {
   date: string;
   value: number;
   description?: string;
-  proof?: Proof;
+  proofs?: Proof[]; // Changed from proof to proofs
 }
 
 export interface ConstructionProgressEntry {
-  id: string;
+  id:string;
   date: string;
   value: number;
   description?: string;
-  proof?: Proof;
+  proofs?: Proof[]; // Changed from proof to proofs
 }
 
 export interface CaixaFinancingInstallment {
@@ -28,7 +28,7 @@ export interface CaixaFinancingInstallment {
   interestPaid: number;
   principalPaid: number;
   description?: string;
-  proof?: Proof;
+  proofs?: Proof[]; // Changed from proof to proofs
 }
 
 export interface AppState {
