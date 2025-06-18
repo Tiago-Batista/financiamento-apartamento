@@ -46,6 +46,8 @@ const CaixaFinancingScreen: React.FC = () => {
   const [batchProofs, setBatchProofs] = useState<Proof[]>([]);
   const [batchFileError, setBatchFileError] = useState<string | null>(null);
   const batchFileInputRef = React.useRef<HTMLInputElement>(null);
+  const [batchInstallmentsError, setBatchInstallmentsError] = useState<string | null>(null);
+
 
   const [filterText, setFilterText] = useState('');
   const [filterStartDate, setFilterStartDate] = useState('');
@@ -167,6 +169,7 @@ const CaixaFinancingScreen: React.FC = () => {
     setBatchCategory('');
     setBatchProofs([]);
     setBatchFileError(null);
+    setBatchInstallmentsError(null);
     if (batchFileInputRef.current) batchFileInputRef.current.value = "";
     addNotification("Campos do formulário de lote limpos.", 'info');
   };
@@ -221,13 +224,30 @@ const CaixaFinancingScreen: React.FC = () => {
     }
   };
   
+  const validateBatchInstallments = (val: string): string | null => {
+    if (!val.trim()) return "Número de parcelas é obrigatório.";
+    const num = parseFloat(val);
+    if (isNaN(num) || num <= 0 || !Number.isInteger(num)) {
+      return "Deve ser um número inteiro positivo.";
+    }
+    return null;
+  };
+
   const handleBatchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const installmentsValidationError = validateBatchInstallments(batchInstallments);
+    if (installmentsValidationError) {
+      setBatchInstallmentsError(installmentsValidationError);
+      addNotification(installmentsValidationError, 'warning');
+      return;
+    }
+    setBatchInstallmentsError(null);
+
     const numAmount = parseFloat(batchAmountPaid);
     const numInterest = parseFloat(batchInterestPaid);
     const numInstallments = parseInt(batchInstallments, 10);
 
-    if (!batchStartDate || !batchAmountPaid || !batchInterestPaid || !batchInstallments || numAmount <= 0 || numInterest < 0 || numInstallments <= 0) {
+    if (!batchStartDate || !batchAmountPaid || !batchInterestPaid || numAmount <= 0 || numInterest < 0) {
       addNotification('Preencha todos os campos do lote com valores válidos.', 'warning'); return;
     }
     if (numInterest > numAmount) { addNotification('Juros por parcela não pode ser maior que o valor total da parcela.', 'warning'); return; }
@@ -276,11 +296,14 @@ const CaixaFinancingScreen: React.FC = () => {
         pdfFileName: "Relatorio_Financiamento_Caixa.pdf",
         pdfTitle: "Relatório de Parcelas - Financiamento Caixa",
         checkIsEmpty: () => filteredAndSortedCaixaFinancingInstallments.length === 0,
+        addNotification, // Pass addNotification
         noDataMessage: "Não há parcelas do financiamento Caixa registradas para os filtros atuais.",
         onStart: () => setIsPrinting(true),
         onFinish: (success) => {
             setIsPrinting(false);
-            if (!success) addNotification("Falha ao gerar PDF do Financiamento Caixa.", 'error');
+            if (success) {
+                addNotification("PDF do Financiamento Caixa gerado com sucesso!", 'success');
+            }
         }
       });
   };
@@ -362,7 +385,21 @@ const CaixaFinancingScreen: React.FC = () => {
           <form onSubmit={handleBatchSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Data de Início da Primeira Parcela" id="cf-batch-start-date" type="date" value={batchStartDate} onChange={(e) => setBatchStartDate(e.target.value)} required placeholder="DD/MM/AAAA" />
-              <Input label="Número de Parcelas" id="cf-batch-installments" type="number" value={batchInstallments} onChange={(e) => setBatchInstallments(e.target.value)} required min="1" step="1" placeholder="Ex: 360" />
+              <Input 
+                label="Número de Parcelas" 
+                id="cf-batch-installments" 
+                type="number" 
+                value={batchInstallments} 
+                onChange={(e) => {
+                  setBatchInstallments(e.target.value);
+                  setBatchInstallmentsError(validateBatchInstallments(e.target.value));
+                }}
+                error={batchInstallmentsError || undefined}
+                required 
+                min="1" 
+                step="1" 
+                placeholder="Ex: 360" 
+              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Valor Total por Parcela (R$)" id="cf-batch-amount" type="number" value={batchAmountPaid} onChange={(e) => setBatchAmountPaid(e.target.value)} required min="0.01" step="any" placeholder="0,00" />

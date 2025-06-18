@@ -51,6 +51,8 @@ const ConstructionProgressScreen: React.FC = () => {
   const [batchProofs, setBatchProofs] = useState<Proof[]>([]);
   const [batchFileError, setBatchFileError] = useState<string | null>(null);
   const batchFileInputRef = React.useRef<HTMLInputElement>(null);
+  const [batchInstallmentsError, setBatchInstallmentsError] = useState<string | null>(null);
+
 
   const [filterText, setFilterText] = useState('');
   const [filterStartDate, setFilterStartDate] = useState('');
@@ -170,6 +172,7 @@ const ConstructionProgressScreen: React.FC = () => {
     setBatchCategory('');
     setBatchProofs([]);
     setBatchFileError(null);
+    setBatchInstallmentsError(null);
     if (batchFileInputRef.current) batchFileInputRef.current.value = "";
     addNotification("Campos do formulário de lote limpos.", 'info');
   };
@@ -215,12 +218,29 @@ const ConstructionProgressScreen: React.FC = () => {
     }
   };
   
+  const validateBatchInstallments = (val: string): string | null => {
+    if (!val.trim()) return "Número de pagamentos é obrigatório.";
+    const num = parseFloat(val);
+    if (isNaN(num) || num <= 0 || !Number.isInteger(num)) {
+      return "Deve ser um número inteiro positivo.";
+    }
+    return null;
+  };
+
   const handleBatchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const installmentsValidationError = validateBatchInstallments(batchInstallments);
+    if (installmentsValidationError) {
+      setBatchInstallmentsError(installmentsValidationError);
+      addNotification(installmentsValidationError, 'warning');
+      return;
+    }
+    setBatchInstallmentsError(null);
+
     const numValue = parseFloat(batchValue);
     const numInstallments = parseInt(batchInstallments, 10);
 
-    if (!batchStartDate || !batchValue || !batchInstallments || numValue <= 0 || numInstallments <= 0) {
+    if (!batchStartDate || !batchValue || numValue <= 0) {
       addNotification('Preencha todos os campos do lote com valores válidos.', 'warning'); return;
     }
     
@@ -284,11 +304,14 @@ const ConstructionProgressScreen: React.FC = () => {
       pdfFileName: "Relatorio_Evolucao_Obra.pdf",
       pdfTitle: "Relatório de Evolução da Obra",
       checkIsEmpty: () => filteredAndSortedConstructionProgressEntries.length === 0 && monthlyPayments.length === 0,
+      addNotification, // Pass addNotification
       noDataMessage: "Não há pagamentos de evolução de obra registrados para os filtros atuais.",
       onStart: () => setIsPrinting(true),
       onFinish: (success) => {
         setIsPrinting(false);
-        if (!success) addNotification("Falha ao gerar PDF da Evolução de Obra.", 'error');
+        if (success) {
+            addNotification("PDF da Evolução de Obra gerado com sucesso!", 'success');
+        }
       }
     });
   };
@@ -366,7 +389,21 @@ const ConstructionProgressScreen: React.FC = () => {
           <form onSubmit={handleBatchSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Data de Início do Primeiro Pagamento" id="cp-batch-start-date" type="date" value={batchStartDate} onChange={(e) => setBatchStartDate(e.target.value)} required placeholder="DD/MM/AAAA" />
-              <Input label="Número de Pagamentos" id="cp-batch-installments" type="number" value={batchInstallments} onChange={(e) => setBatchInstallments(e.target.value)} required min="1" step="1" placeholder="Ex: 6" />
+              <Input 
+                label="Número de Pagamentos" 
+                id="cp-batch-installments" 
+                type="number" 
+                value={batchInstallments} 
+                onChange={(e) => {
+                  setBatchInstallments(e.target.value);
+                  setBatchInstallmentsError(validateBatchInstallments(e.target.value));
+                }}
+                error={batchInstallmentsError || undefined}
+                required 
+                min="1" 
+                step="1" 
+                placeholder="Ex: 6" 
+              />
             </div>
             <Input label="Valor por Pagamento (R$)" id="cp-batch-value" type="number" value={batchValue} onChange={(e) => setBatchValue(e.target.value)} required min="0.01" step="any" placeholder="0,00" />
             <Input label="Descrição Comum (Opcional)" id="cp-batch-description" type="text" value={batchDescription} onChange={(e) => setBatchDescription(e.target.value)} placeholder="Ex: Medição mensal da obra"/>

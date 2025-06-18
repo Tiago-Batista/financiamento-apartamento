@@ -1,16 +1,6 @@
-
 // @ts-nocheck
 // Ocultando erros TypeScript para bibliotecas globais html2canvas e jspdf
-
-interface GeneratePdfParams {
-  elementId: string;
-  pdfFileName: string;
-  pdfTitle: string;
-  checkIsEmpty: () => boolean;
-  noDataMessage?: string;
-  onStart?: () => void;
-  onFinish?: (success: boolean) => void;
-}
+import { NotificationType, GeneratePdfParams } from '../types'; // Import GeneratePdfParams for type usage
 
 const DEFAULT_NO_DATA_MESSAGE = "Não há nenhuma informação cadastrada para exibição.";
 
@@ -20,6 +10,7 @@ export const generatePdfFromElement = async (params: GeneratePdfParams): Promise
     pdfFileName,
     pdfTitle,
     checkIsEmpty,
+    addNotification, // Destructure addNotification
     noDataMessage = DEFAULT_NO_DATA_MESSAGE,
     onStart,
     onFinish,
@@ -29,28 +20,26 @@ export const generatePdfFromElement = async (params: GeneratePdfParams): Promise
 
   let jsPDFConstructor: any = null;
 
-  // Primary check for jsPDF v2.x UMD (e.g., v2.5.1 as used)
   if (typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF === 'function') {
     jsPDFConstructor = window.jspdf.jsPDF;
   } 
-  // Fallback check (e.g., for jsPDF v1.x or other UMD configurations)
   else if (typeof window.jsPDF === 'function') { 
     jsPDFConstructor = window.jsPDF;
     console.warn("jsPDF foi encontrado em window.jsPDF. O esperado para a versão 2.5.1 é window.jspdf.jsPDF. Usando fallback.");
   }
 
-  // Verifica se a biblioteca jsPDF está carregada
   if (!jsPDFConstructor) {
-    console.error("A biblioteca jsPDF (nem em window.jspdf.jsPDF nem em window.jsPDF) não está disponível. Certifique-se de que ela foi carregada do CDN.");
-    alert("Erro Crítico: A biblioteca para gerar PDF (jsPDF) não foi carregada corretamente. Verifique sua conexão com a internet ou se há extensões de navegador bloqueando scripts. A funcionalidade de impressão não pode continuar.");
+    const errorMsg = "Erro Crítico: A biblioteca para gerar PDF (jsPDF) não foi carregada. Verifique sua conexão ou extensões de navegador.";
+    console.error(errorMsg);
+    addNotification(errorMsg, 'error', 10000); // Use addNotification
     if (onFinish) onFinish(false);
     return false;
   }
 
-  // Verifica se a biblioteca html2canvas está carregada
   if (typeof window.html2canvas === 'undefined') {
-    console.error("A biblioteca html2canvas não está disponível em window.html2canvas. Certifique-se de que ela foi carregada do CDN.");
-    alert("Erro Crítico: A biblioteca para capturar a tela (html2canvas) não foi carregada corretamente. Verifique sua conexão ou extensões. A funcionalidade de impressão não pode continuar.");
+    const errorMsg = "Erro Crítico: A biblioteca para capturar a tela (html2canvas) não foi carregada. Verifique sua conexão ou extensões.";
+    console.error(errorMsg);
+    addNotification(errorMsg, 'error', 10000); // Use addNotification
     if (onFinish) onFinish(false);
     return false;
   }
@@ -59,7 +48,7 @@ export const generatePdfFromElement = async (params: GeneratePdfParams): Promise
     const pdf = new jsPDFConstructor({ orientation: 'p', unit: 'mm', format: 'a4' });
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
-    const margin = 10; // margem de 10mm
+    const margin = 10; 
 
     if (checkIsEmpty()) {
       pdf.setFontSize(16);
@@ -73,20 +62,19 @@ export const generatePdfFromElement = async (params: GeneratePdfParams): Promise
 
     const elementToCapture = document.getElementById(elementId);
     if (!elementToCapture) {
-      console.error(`Elemento com ID '${elementId}' não encontrado.`);
-      alert(`Erro ao gerar PDF: Elemento para impressão não encontrado (${elementId}).`);
+      const errorMsg = `Erro ao gerar PDF: Elemento para impressão não encontrado (ID: ${elementId}).`;
+      console.error(errorMsg);
+      addNotification(errorMsg, 'error'); // Use addNotification
       if (onFinish) onFinish(false);
       return false;
     }
 
     const canvas = await window.html2canvas(elementToCapture, {
-      scale: 2, // Melhora a qualidade da imagem
+      scale: 2, 
       useCORS: true,
       logging: false,
-      backgroundColor: '#ffffff', // Garante que o fundo seja branco para o canvas
-      onclone: (documentClone) => {
-        // Opcional: Você pode adicionar manipulações de clonagem específicas aqui, se necessário
-      }
+      backgroundColor: '#ffffff', 
+      onclone: (documentClone) => {},
     });
     
     const contentWidth = pdfWidth - 2 * margin;
@@ -150,9 +138,10 @@ export const generatePdfFromElement = async (params: GeneratePdfParams): Promise
     if (onFinish) onFinish(true);
     return true;
 
-  } catch (error) {
+  } catch (error: any) {
+    const errorMsg = `Ocorreu um erro durante a geração do PDF: ${error.message || error.toString()}`;
     console.error("Erro durante o processo de geração do PDF:", error);
-    alert("Ocorreu um erro durante a geração do PDF. Verifique o console para mais detalhes.");
+    addNotification(errorMsg, 'error', 10000); // Use addNotification
     if (onFinish) onFinish(false);
     return false;
   }

@@ -57,6 +57,19 @@ export interface NotificationMessage {
   duration?: number; // Optional duration in ms for auto-dismiss
 }
 
+// Google Authentication Types
+export interface GoogleUserProfile {
+  id: string;
+  name: string | null;
+  email: string | null;
+  picture: string | null;
+}
+
+export interface GoogleAuthUser extends GoogleUserProfile {
+  accessToken: string | null; // For API calls
+  idToken?: string; // JWT token from Google Sign-In
+}
+
 export interface AppState {
   totalPropertyValue: number;
   initialLoanAmount: number; 
@@ -70,7 +83,12 @@ export interface AppState {
   aiActionLog: AiActionLogEntry[];
   categories: string[]; 
   budgets: BudgetEntry[]; 
-  notifications: NotificationMessage[]; // New: For in-app notifications
+  notifications: NotificationMessage[];
+  // Google Auth State
+  isAuthLoading: boolean;
+  isAuthenticated: boolean;
+  authUser: GoogleAuthUser | null;
+  authError: string | null;
 }
 
 export interface UpdateProofNamePayload {
@@ -103,9 +121,15 @@ export type AppAction =
   | { type: 'ADD_BUDGET_ENTRY'; payload: BudgetEntry } 
   | { type: 'UPDATE_BUDGET_ENTRY'; payload: BudgetEntry } 
   | { type: 'REMOVE_BUDGET_ENTRY'; payload: string } // id of BudgetEntry
-  | { type: 'ADD_NOTIFICATION'; payload: Omit<NotificationMessage, 'id'> } // New
-  | { type: 'REMOVE_NOTIFICATION'; payload: string } // id of NotificationMessage // New
-  | { type: 'LOAD_STATE'; payload: AppState };
+  | { type: 'ADD_NOTIFICATION'; payload: Omit<NotificationMessage, 'id'> } 
+  | { type: 'REMOVE_NOTIFICATION'; payload: string } // id of NotificationMessage
+  | { type: 'LOAD_STATE'; payload: AppState }
+  // Google Auth Actions
+  | { type: 'AUTH_LOADING'; payload: boolean }
+  | { type: 'AUTH_SUCCESS'; payload: GoogleAuthUser }
+  | { type: 'AUTH_ERROR'; payload: string | null }
+  | { type: 'AUTH_LOGOUT' };
+
 
 export interface TotalsPerCategory {
   [category: string]: number;
@@ -133,11 +157,15 @@ export interface AppContextType {
   getTotalMonthlySpending: (year: number, month: number) => number; 
   // Função de salvamento manual
   saveStateToLocalStorageManually: () => boolean;
-  addNotification: (message: string, type: NotificationType, duration?: number) => void; // New
+  addNotification: (message: string, type: NotificationType, duration?: number) => void;
+  // Google Auth functions
+  signInWithGoogle: () => void;
+  signOutGoogle: () => void;
+  getGoogleAccessToken: () => Promise<string | null>;
 }
 
 export const APP_STATE_LOCAL_STORAGE_KEY = 'financiamentoApartamentoState';
-export const WELCOME_MODAL_DISMISSED_KEY = 'financiamentoWelcomeModalDismissed'; // New for onboarding
+export const WELCOME_MODAL_DISMISSED_KEY = 'financiamentoWelcomeModalDismissed';
 export const MAX_PROOF_FILE_SIZE_MB = 2;
 export const MAX_PROOF_FILE_SIZE_BYTES = MAX_PROOF_FILE_SIZE_MB * 1024 * 1024;
 export const ALLOWED_PROOF_FILE_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp']; 
@@ -177,4 +205,24 @@ export interface DocumentForAnalysis {
   newNameSuggestion?: string; 
   isUserCancelled?: boolean;
   userAssignedCategory?: string; 
+}
+
+// Type for generatePdfFromElement parameters
+export interface GeneratePdfParams {
+  elementId: string;
+  pdfFileName: string;
+  pdfTitle: string;
+  checkIsEmpty: () => boolean;
+  addNotification: (message: string, type: NotificationType, duration?: number) => void;
+  noDataMessage?: string;
+  onStart?: () => void;
+  onFinish?: (success: boolean) => void;
+}
+
+// Google GIS types (minimal, as GIS library is global)
+// Ensure these are available globally if you use them explicitly
+declare global {
+  interface Window {
+    google?: any; // Google Identity Services client
+  }
 }

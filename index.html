@@ -25,6 +25,20 @@
                 DEFAULT: '#22c55e', // green-500
                 dark: '#15803d', // green-700
               }
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              scaleUp: {
+                '0%': { opacity: '0', transform: 'scale(0.95)' },
+                '100%': { opacity: '1', transform: 'scale(1)' },
+              }
+            },
+            animation: {
+              fadeIn: 'fadeIn 0.3s ease-out',
+              scaleUp: 'scaleUp 0.3s ease-out forwards',
             }
           }
         }
@@ -107,6 +121,7 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgP4PWGCCwoHvaXTsCk6MyNMRkEBX+/ccDptZVQYA9w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4HCscSPV_s3KA7rqZfjFPPkaxSm6wHfcFDEfyHp5ngIF7cdIg6u01L_tOVw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script type="importmap">
 {
   "imports": {
@@ -124,38 +139,27 @@
     <div id="root"></div>
     <script>
       // GEMINI API KEY CONFIGURATION FOR BROWSER TESTING:
-      // The application is designed to use process.env.API_KEY.
-      // In a real build/server environment, this variable would be set externally.
+      // The application is designed to use process.env.API_KEY for Gemini AI features.
+      // This key is separate from Google OAuth for user authentication and Drive access.
+      // Replace "AIzaSyBtTQ7QSZ3sHUuuASACn3hwQ2673jnTArc" with your actual Gemini API key if different.
       //
-      // FOR LOCAL TESTING IN THE BROWSER:
-      // If you need to test AI features, you can temporarily set your Gemini API key here.
-      // 1. Uncomment the line below.
-      // 2. Replace "YOUR_GEMINI_API_KEY_HERE" with your actual Gemini API key.
-      //
-      // Example with the key you might have (replace if different):
-      // window.process = { env: { API_KEY: "AIzaSyBtTQ7QSZ3sHUuuASACn3hwQ2673jnTArc" } };
+      window.process = { env: { API_KEY: "AIzaSyBtTQ7QSZ3sHUuuASACn3hwQ2673jnTArc" } }; // Replace with your key
       //
       // IMPORTANT:
-      // - DO NOT COMMIT YOUR ACTUAL API KEY TO VERSION CONTROL.
-      // - This method is for local development and testing convenience only.
+      // - DO NOT COMMIT YOUR ACTUAL API KEY TO VERSION CONTROL if this file is tracked.
+      // - This method is for local development and testing convenience only for the Gemini API.
       //
       // The application code (e.g., AiAnalysisScreen.tsx) expects process.env.API_KEY to be available.
       // This script ensures window.process and window.process.env exist.
-      if (!window.process) {
+      if (!window.process) { 
         window.process = { env: {} };
       }
-      // If API_KEY is not set by uncommenting the line above, it defaults to an empty string.
-      // The AiAnalysisScreen will check for a valid, non-empty key to enable AI features.
       if (typeof window.process.env.API_KEY === 'undefined') {
-         // console.warn("process.env.API_KEY is not defined. AI features might not work unless explicitly set above for testing.");
-         window.process.env.API_KEY = ""; // Default to empty if not set for testing
+         window.process.env.API_KEY = ""; 
       }
 
-      // OAUTH CLIENT ID:
-      // The OAuth Client ID (e.g., "3650905...") is not currently used by this application
-      // as there are no active features requiring Google OAuth (like Google Drive integration).
-      // If such features are added in the future, the OAuth configuration will be handled
-      // as part of that feature implementation.
+      // Google OAuth Client ID is now managed within the application via config.ts and AppContext.
+      // No specific setup for OAuth Client ID is needed here in index.html anymore.
     </script>
     <script type="module" src="/index.tsx"></script>
   </body>

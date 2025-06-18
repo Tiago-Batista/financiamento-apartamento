@@ -50,7 +50,7 @@ const DashboardScreen: React.FC = () => {
     getMonthlySpendingForCategory, getTotalMonthlySpending,
     getTotalPrincipalPaidOnCaixaFinancing,
     saveStateToLocalStorageManually,
-    addNotification // New: Use addNotification
+    addNotification
   } = useAppContext();
 
   const [isPrinting, setIsPrinting] = useState(false);
@@ -102,10 +102,15 @@ const DashboardScreen: React.FC = () => {
       pdfFileName: "Resumo_Geral_Financiamento.pdf",
       pdfTitle: "Resumo Geral do Financiamento",
       checkIsEmpty: () => false, 
+      addNotification, // Pass addNotification
       onStart: () => setIsPrinting(true),
       onFinish: (success) => {
         setIsPrinting(false);
-        if (!success) addNotification("Falha ao gerar PDF do Resumo Geral.", 'error');
+        if (success) {
+            addNotification("PDF do Resumo Geral gerado com sucesso!", 'success');
+        } else {
+            // Error notification is handled within generatePdfFromElement
+        }
       }
     });
   };

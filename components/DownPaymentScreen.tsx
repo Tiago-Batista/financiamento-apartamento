@@ -45,6 +45,8 @@ const DownPaymentScreen: React.FC = () => {
   const [batchProofs, setBatchProofs] = useState<Proof[]>([]);
   const [batchFileError, setBatchFileError] = useState<string | null>(null);
   const batchFileInputRef = React.useRef<HTMLInputElement>(null);
+  const [batchInstallmentsError, setBatchInstallmentsError] = useState<string | null>(null);
+
 
   const [filterText, setFilterText] = useState('');
   const [filterStartDate, setFilterStartDate] = useState('');
@@ -164,6 +166,7 @@ const DownPaymentScreen: React.FC = () => {
     setBatchCategory('');
     setBatchProofs([]);
     setBatchFileError(null);
+    setBatchInstallmentsError(null);
     if (batchFileInputRef.current) batchFileInputRef.current.value = "";
     addNotification("Campos do formulário de lote limpos.", 'info');
   };
@@ -214,12 +217,30 @@ const DownPaymentScreen: React.FC = () => {
     }
   };
 
+  const validateBatchInstallments = (val: string): string | null => {
+    if (!val.trim()) return "Número de parcelas é obrigatório.";
+    const num = parseFloat(val);
+    if (isNaN(num) || num <= 0 || !Number.isInteger(num)) {
+      return "Deve ser um número inteiro positivo.";
+    }
+    return null;
+  };
+
   const handleBatchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const installmentsValidationError = validateBatchInstallments(batchInstallments);
+    if (installmentsValidationError) {
+      setBatchInstallmentsError(installmentsValidationError);
+      addNotification(installmentsValidationError, 'warning');
+      return;
+    }
+    setBatchInstallmentsError(null); // Clear error if validation passes now
+
     const numValue = parseFloat(batchValue);
     const numInstallments = parseInt(batchInstallments, 10);
 
-    if (!batchStartDate || !batchValue || !batchInstallments || numValue <= 0 || numInstallments <= 0) {
+    if (!batchStartDate || !batchValue || numValue <= 0) {
       addNotification('Por favor, preencha todos os campos do cadastro em lote com valores válidos.', 'warning');
       return;
     }
@@ -270,11 +291,14 @@ const DownPaymentScreen: React.FC = () => {
       pdfFileName: "Relatorio_F_Entrada.pdf",
       pdfTitle: "Relatório de Pagamentos - F/Entrada",
       checkIsEmpty: () => filteredAndSortedDownPaymentEntries.length === 0,
+      addNotification, // Pass addNotification
       noDataMessage: "Não há entradas de F/Entrada registradas para os filtros atuais.",
       onStart: () => setIsPrinting(true),
       onFinish: (success) => {
         setIsPrinting(false);
-        if (!success) addNotification("Falha ao gerar PDF da F/Entrada.", 'error');
+        if (success) {
+            addNotification("PDF da F/Entrada gerado com sucesso!", 'success');
+        }
       }
     });
   };
@@ -355,7 +379,21 @@ const DownPaymentScreen: React.FC = () => {
           <form onSubmit={handleBatchSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Data de Início da Primeira Parcela" id="dp-batch-start-date" type="date" value={batchStartDate} onChange={(e) => setBatchStartDate(e.target.value)} required placeholder="DD/MM/AAAA" />
-              <Input label="Número de Parcelas" id="dp-batch-installments" type="number" value={batchInstallments} onChange={(e) => setBatchInstallments(e.target.value)} required min="1" step="1" placeholder="Ex: 12" />
+              <Input 
+                label="Número de Parcelas" 
+                id="dp-batch-installments" 
+                type="number" 
+                value={batchInstallments} 
+                onChange={(e) => {
+                  setBatchInstallments(e.target.value);
+                  setBatchInstallmentsError(validateBatchInstallments(e.target.value));
+                }}
+                error={batchInstallmentsError || undefined}
+                required 
+                min="1" 
+                step="1" 
+                placeholder="Ex: 12" 
+              />
             </div>
             <Input label="Valor por Parcela (R$)" id="dp-batch-value" type="number" value={batchValue} onChange={(e) => setBatchValue(e.target.value)} required min="0.01" step="any" placeholder="0,00" />
             <Input label="Descrição Comum (Opcional)" id="dp-batch-description" type="text" value={batchDescription} onChange={(e) => setBatchDescription(e.target.value)} placeholder="Ex: Parcelas mensais do sinal" />
