@@ -113,7 +113,7 @@
     "react": "https://esm.sh/react@^19.1.0",
     "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
     "react/": "https://esm.sh/react@^19.1.0/",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.6.1", 
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.6.1",
     "@google/genai": "https://esm.sh/@google/genai"
   }
 }
@@ -123,22 +123,39 @@
   <body class="bg-gray-100">
     <div id="root"></div>
     <script>
-      // This is a placeholder for process.env.API_KEY as per instructions.
-      // In a real build, this would be injected or set globally.
-      // For this environment, if you need to test, you can temporarily set it here:
-      // window.process = { env: { API_KEY: "YOUR_GEMINI_API_KEY_HERE" } };
-      // IMPORTANT: DO NOT COMMIT ACTUAL KEYS TO VERSION CONTROL.
-      // The instructions assume process.env.API_KEY is available.
+      // GEMINI API KEY CONFIGURATION FOR BROWSER TESTING:
+      // The application is designed to use process.env.API_KEY.
+      // In a real build/server environment, this variable would be set externally.
+      //
+      // FOR LOCAL TESTING IN THE BROWSER:
+      // If you need to test AI features, you can temporarily set your Gemini API key here.
+      // 1. Uncomment the line below.
+      // 2. Replace "YOUR_GEMINI_API_KEY_HERE" with your actual Gemini API key.
+      //
+      // Example with the key you might have (replace if different):
+      // window.process = { env: { API_KEY: "AIzaSyBtTQ7QSZ3sHUuuASACn3hwQ2673jnTArc" } };
+      //
+      // IMPORTANT:
+      // - DO NOT COMMIT YOUR ACTUAL API KEY TO VERSION CONTROL.
+      // - This method is for local development and testing convenience only.
+      //
+      // The application code (e.g., AiAnalysisScreen.tsx) expects process.env.API_KEY to be available.
+      // This script ensures window.process and window.process.env exist.
       if (!window.process) {
         window.process = { env: {} };
       }
-      // Ensure API_KEY is at least an empty string if not set, to avoid undefined errors.
-      // The AiAnalysisScreen checks for a valid, non-empty key.
+      // If API_KEY is not set by uncommenting the line above, it defaults to an empty string.
+      // The AiAnalysisScreen will check for a valid, non-empty key to enable AI features.
       if (typeof window.process.env.API_KEY === 'undefined') {
-         // console.warn("process.env.API_KEY is not defined. AI features might not work unless set globally for testing.");
-         // To make it "available" but empty:
-         window.process.env.API_KEY = ""; 
+         // console.warn("process.env.API_KEY is not defined. AI features might not work unless explicitly set above for testing.");
+         window.process.env.API_KEY = ""; // Default to empty if not set for testing
       }
+
+      // OAUTH CLIENT ID:
+      // The OAuth Client ID (e.g., "3650905...") is not currently used by this application
+      // as there are no active features requiring Google OAuth (like Google Drive integration).
+      // If such features are added in the future, the OAuth configuration will be handled
+      // as part of that feature implementation.
     </script>
     <script type="module" src="/index.tsx"></script>
   </body>

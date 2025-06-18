@@ -18,15 +18,15 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ notification }) =
   const { dispatch } = useAppContext();
 
   useEffect(() => {
-    let timerId: NodeJS.Timeout | null = null;
+    let timerId: number | null = null;
     if (notification.duration) {
-      timerId = setTimeout(() => {
+      timerId = window.setTimeout(() => {
         dispatch({ type: 'REMOVE_NOTIFICATION', payload: notification.id });
       }, notification.duration);
     }
     return () => {
       if (timerId) {
-        clearTimeout(timerId);
+        window.clearTimeout(timerId);
       }
     };
   }, [notification, dispatch]);
